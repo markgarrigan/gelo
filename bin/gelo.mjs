@@ -41,10 +41,10 @@ const opts = new function() {
     this.paths = {
         root: 'src',
         dest: 'dist',
-        riot: `static/js${this.sep}tags`,
-        images: 'static/images',
-        files: 'static/files',
-        css: 'static/css'
+        riot: `static${this.sep}js${this.sep}tags`,
+        images: `static${this.sep}images`,
+        files: `static${this.sep}files`,
+        css: `static${this.sep}css`
     }
 }
 
