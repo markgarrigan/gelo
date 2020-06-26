@@ -179,4 +179,16 @@ Our new `index.html` now has the title we passed in.
 
 gelo has the underpinnings to become a full staticish site builder including javascript components and css. gelo may expand into that, or just become part of a larger project that does all that.
 
+#### Other things gelo can do right now
+
+- Compress jpegs and pngs using [imagemin][2].
+  - Images go into `src/static/images`
+- Move random public files like PDFS.
+  - Files go into `src/static/files`
+- Compile [RIOT][3] components.
+  - You're probably using React, Vue, or Svelte. You should try [RIOT][3]. It's better.
+  - Riot components can be anywhere in `src` but need to use the .riot file extension.
+
 [1]: https://css-tricks.com/the-simplest-ways-to-handle-html-includes/
+[2]: https://www.npmjs.com/package/imagemin
+[3]: https://riot.js.org/
