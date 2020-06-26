@@ -13,7 +13,6 @@
     "email": "mark@markgarrigan.com"
   },
   "main": "bin/gelo.js",
-  "preferGlobal": true,
   "bin": {
     "gelo": "bin/gelo.mjs"
   },
