@@ -37,7 +37,7 @@ gelo looks for a file relative to the file that's asking for it.
 
 ### Absolute gelo files
 
-gelo looks for a file starting at src and going to the place you want.
+gelo starts in src and goes where you tell it to go.
 
 `<!--gelo /_file.html-->`
 
