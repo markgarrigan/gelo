@@ -4,12 +4,28 @@ import cmd from 'commander'
 import fs from 'fs'
 import ffif from 'fast-find-in-files'
 import riot from '@riotjs/compiler'
+import sass from 'sass'
 import imagemin from 'imagemin'
 import imageminJpegtran from 'imagemin-jpegtran'
 import imageminPngquant from 'imagemin-pngquant'
 import chokidar from 'chokidar'
 
 const { fastFindInFiles } = ffif
+
+riot.registerPreprocessor('css', 'sass', function(code, { options }) {
+    const { file } = options
+
+    console.log('Compile the sass code in', file)
+
+    const {css} = sass.renderSync({
+        data: code
+    })
+
+    return {
+        code: css.toString(),
+        map: null
+    }
+})
 
 const opts = new function() {
     this.sep = '/'
