@@ -181,6 +181,7 @@ gelo has the underpinnings to become a full staticish site builder including jav
 
 #### Other things gelo can do right now
 
+- Compile css from scss using [sass][4]
 - Compress jpegs and pngs using [imagemin][2].
   - Images go into `src/static/images`
 - Move random public files like PDFS.
@@ -188,7 +189,9 @@ gelo has the underpinnings to become a full staticish site builder including jav
 - Compile [RIOT][3] components.
   - You're probably using React, Vue, or Svelte. You should try [RIOT][3]. It's better.
   - Riot components can be anywhere in `src` but need to use the .riot file extension.
+  - You can use scss in your Riot components. It will be compiled to css.
 
 [1]: https://css-tricks.com/the-simplest-ways-to-handle-html-includes/
 [2]: https://www.npmjs.com/package/imagemin
 [3]: https://riot.js.org/
+[4]: https://www.npmjs.com/package/sass
