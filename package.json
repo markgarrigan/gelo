@@ -35,5 +35,8 @@
     "imagemin": "^7.0.1",
     "imagemin-jpegtran": "^7.0.0",
     "imagemin-pngquant": "^9.0.0"
+  },
+  "scripts": {
+    "test": ""
   }
 }
