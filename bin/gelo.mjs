@@ -34,14 +34,17 @@ const opts = new function() {
     this.ext = {
         html: '.html',
         js: '.js',
-        riot: '.riot'        
+        riot: '.riot',
+        css: '.css',
+        scss: '.scss'     
     }
     this.paths = {
         root: 'src',
         dest: 'dist',
         riot: `static/js${this.sep}tags`,
         images: 'static/images',
-        files: 'static/files'
+        files: 'static/files',
+        css: 'static/css'
     }
 }
 
@@ -208,6 +211,22 @@ const compileRiot = (path) => {
     )
 }
 
+const compileCSS = (path) => {
+    const paths = ll(`${process.cwd()}${opts.sep}${opts.paths.root}${opts.sep}${opts.paths.css}`, 'css')
+    paths.forEach(path => {
+        if (path.includes(opts.ext.css)) {
+            const css = fs.readFileSync(`${process.cwd()}${opts.sep}${path}`, 'utf8')
+            moveToDest(path, css)
+        }
+        if (path.includes(opts.ext.scss)) {
+            const {css,map} = sass.renderSync({
+                file: path
+            })
+            moveToDest(path.replace(opts.ext.scss, opts.ext.css), css.toString())
+        }
+    })
+}
+
 const compressImages = async (path) => {
     await imagemin([path], {
         destination: `${opts.paths.dest}${opts.sep}${opts.paths.images}`,
@@ -276,7 +295,7 @@ const startTime = () => {
 }
 
 const report = (hrend) => {
-    clear()
+    // clear()
     console.info('⭐️Finished: %ds %dms', hrend[0], hrend[1] / 1000000)
     // process.exit()
 }
@@ -305,6 +324,9 @@ const changed = (path) => {
             // Update a single page
             updateSinglePage(path)
         }
+    }
+    if (path.includes(opts.ext.css) || path.includes(opts.ext.scss)) {
+        compileCSS(path)
     }
     if (path.includes(opts.ext.riot)) {
         compileRiot(path)
