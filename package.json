@@ -1,0 +1,40 @@
+{
+  "name": "gelo",
+  "version": "0.0.1",
+  "description": "gelo is like LEGO(tm) for html.",
+  "keywords": [
+    "html",
+    "builder",
+    "static"
+  ],
+  "homepage": "https://github.com/markgarrigan/gelo",
+  "bugs": {
+    "url": "https://github.com/markgarrigan/gelo/issues",
+    "email": "mark@markgarrigan.com"
+  },
+  "main": "bin/gelo.js",
+  "preferGlobal": true,
+  "bin": {
+    "gelo": "bin/gelo.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/markgarrigan/gelo.git"
+  },
+  "author": "Mark Garrigan <mark@markgarrigan.com> (markgarrigan.com)",
+  "license": "MIT",
+  "private": false,
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "engineStrict": true,
+  "dependencies": {
+    "@riotjs/compiler": "^4.9.2",
+    "chokidar": "^3.4.0",
+    "commander": "^5.1.0",
+    "fast-find-in-files": "^0.1.1",
+    "imagemin": "^7.0.1",
+    "imagemin-jpegtran": "^7.0.0",
+    "imagemin-pngquant": "^9.0.0"
+  }
+}
