@@ -1,5 +1,7 @@
 # gelo
 
+![Node.js Package](https://github.com/markgarrigan/gelo/workflows/Node.js%20Package/badge.svg)
+
 Are you in to static web pages? Do you wish you knew [The Simplest Way to Handle HTML Includes][1]?
 
 gelo can help you.
