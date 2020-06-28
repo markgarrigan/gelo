@@ -10,6 +10,16 @@ gelo can help you.
 - gelo is simple
 - gelo is fast
 
+## What is gelo?
+
+gelo is a command line interface (CLI) that lets you build HTML using reusable chunks. It makes it easy to write something like a `_footer.html` file once and reuse it in any number of HTML files.
+
+## Why gelo?
+
+It might seem old school. Yes. It is. Remember the good ol' days of PHP includes? or ERB partials? No, you're not that old then. Hooray for you!!
+
+Sometimes, even in these crazy futuristic days, it's nice to just build a website using HTML. gelo can make it a little nicer to do that.
+
 ## Install
 
 `npm i gelo -g`
