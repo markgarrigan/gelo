@@ -197,6 +197,33 @@ gelo has the underpinnings to become a full staticish site builder including jav
   - Riot components can be anywhere in `src` but need to use the .riot file extension.
   - You can use scss in your Riot components. It will be compiled to css.
 
+### gelo Source Directory Structure
+
+```
++-- src
+|   +-- _special.html
+|   +-- index.html
+|   +-- about
+    |   +-- _team.html
+    |   +-- index.html
+    +-- contact
+    |   +-- _map.html
+    |   +-- index.html
+|   +-- shared
+    |   +-- _head.html
+    |   +-- _footer.html
+    +-- static
+    |   +-- css
+        |   +-- _colors.scss
+        |   +-- main.scss
+    |   +-- files
+        |   +-- public.pdf
+        |   +-- stats.xls
+    |   +-- images
+        |   +-- logo.png
+        |   +-- circle.png
+```
+
 [1]: https://css-tricks.com/the-simplest-ways-to-handle-html-includes/
 [2]: https://www.npmjs.com/package/imagemin
 [3]: https://riot.js.org/
