@@ -12,6 +12,10 @@ gelo can help you.
 
 `npm i gelo -g`
 
+#### Node Version
+
+gelo runs on the latest version of node and runs on version 12 using the `--experimental-modules` flag.
+
 ## Building
 
 gelo looks for your source html files in a directory called `src`.
