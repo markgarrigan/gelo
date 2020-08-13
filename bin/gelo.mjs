@@ -211,7 +211,7 @@ const compileRiot = (path) => {
     )
 }
 
-const compileCSS = (path) => {
+const compileCSS = () => {
     const paths = ll(`${process.cwd()}${opts.sep}${opts.paths.root}${opts.sep}${opts.paths.css}`, 'css')
     paths.forEach(path => {
         if (path.includes(opts.ext.css)) {
@@ -326,7 +326,7 @@ const changed = (path) => {
         }
     }
     if (path.includes(opts.ext.css) || path.includes(opts.ext.scss)) {
-        compileCSS(path)
+        compileCSS()
     }
     if (path.includes(opts.ext.riot)) {
         compileRiot(path)
@@ -386,6 +386,7 @@ const build = async (paths, options) => {
                 compileRiot(path)
             }
         })
+        compileCSS()
         copyFiles(paths.filter(path => path.includes(opts.paths.files)))
         await compressImages(`${opts.paths.root}${opts.sep}${opts.paths.images}${opts.sep}*.{jpg,png}`)
         report(process.hrtime(hrstart))
