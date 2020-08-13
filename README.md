@@ -16,7 +16,7 @@ gelo is a command line interface (CLI) that lets you build HTML using reusable c
 
 ## Why gelo?
 
-It might seem old school. Yes. It is. Remember the good ol' days of PHP includes? or ERB partials? No, you're not that old then. Hooray for you!!
+It might seem old school. Yes. It is. Remember the good ol' days of PHP includes? or ERB partials? No? Then you're not that old. Hooray for you!!
 
 Sometimes, even in these crazy futuristic days, it's nice to just build a website using HTML. gelo can make it a little nicer to do that.
 
