@@ -11,6 +11,7 @@ import imageminPngquant from 'imagemin-pngquant'
 import chokidar from 'chokidar'
 
 const { fastFindInFiles } = ffif
+const {program} = cmd
 
 riot.registerPreprocessor('css', 'sass', function(code, { options }) {
     const { file } = options
@@ -329,7 +330,7 @@ const changed = (path) => {
         compileCSS()
     }
     if (path.includes(opts.ext.riot)) {
-        compileRiot(path)
+        program.riot ? compileRiot(path) : copyFile(path)
     }
     report(process.hrtime(hrstart))
 }
@@ -383,7 +384,7 @@ const build = async (paths, options) => {
                 updateSinglePage(path)
             }
             if (path.includes(opts.ext.riot)) {
-                compileRiot(path)
+                program.riot ? compileRiot(path) : copyFile(path)
             }
         })
         compileCSS()
@@ -416,7 +417,8 @@ const dev = async (options) => {
     log('Gelo is ready...')
 }
 
-const {program} = cmd
+program
+    .option('--no-riot', 'do not compile riot tags to javascript')
 
 program
     .command('build')
