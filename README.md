@@ -2,6 +2,8 @@
 
 ![Node.js Package](https://github.com/markgarrigan/gelo/workflows/Node.js%20Package/badge.svg)
 
+### ** GELO IS IN ACTIVE DEVELOPMENT. FEATURES MAY COME AND GO IN EVERY RELEASE **
+
 Are you in to static web pages? Do you wish you knew [The Simplest Way to Handle HTML Includes][1]?
 
 gelo can help you.
@@ -202,10 +204,8 @@ gelo has the underpinnings to become a full staticish site builder including jav
   - Images go into `src/static/images`
 - Move random public files like PDFS.
   - Files go into `src/static/files`
-- Compile [RIOT][3] components.
-  - You're probably using React, Vue, or Svelte. You should try [RIOT][3]. It's better.
-  - Riot components can be anywhere in `src` but need to use the .riot file extension.
-  - You can use scss in your Riot components. It will be compiled to css.
+- Bundle Javascript files using [esbuild][3]
+  - Each javascript file in `src/static/js` is treated as an entry file and will be bundled separately
 
 ### gelo Source Directory Structure
 
@@ -223,6 +223,9 @@ gelo has the underpinnings to become a full staticish site builder including jav
     |   +-- _head.html
     |   +-- _footer.html
     +-- static
+    |   +-- js
+        |   entry1.js
+        |   entry2.js
     |   +-- css
         |   +-- _colors.scss
         |   +-- main.scss
@@ -236,5 +239,5 @@ gelo has the underpinnings to become a full staticish site builder including jav
 
 [1]: https://css-tricks.com/the-simplest-ways-to-handle-html-includes/
 [2]: https://www.npmjs.com/package/imagemin
-[3]: https://riot.js.org/
+[3]: https://github.com/evanw/esbuild
 [4]: https://www.npmjs.com/package/sass
