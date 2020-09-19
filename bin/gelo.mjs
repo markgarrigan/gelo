@@ -10,6 +10,7 @@ import imageminPngquant from 'imagemin-pngquant'
 import chokidar from 'chokidar'
 import esbuild from 'esbuild'
 import del from 'del'
+import pretty from 'pretty'
 
 const { buildSync } = esbuild
 const { fastFindInFiles } = ffif
@@ -151,7 +152,7 @@ const updateSinglePage = (page, reporting = true) => {
     let pageContent = fs.readFileSync(`${process.cwd()}${opts.sep}${page}`, 'utf8')
     if (!includes.length) {
         if (fileName(page)[0] != opts.partial) {
-            moveToDest(page, pageContent)
+            moveToDest(page, pretty(pageContent))
             if (reporting)
                 report(process.hrtime(hrstart))
         }
@@ -167,14 +168,14 @@ const updateSinglePage = (page, reporting = true) => {
             content = updateParams(gelo.params, content)
         }
 
-        pageContent = isFile ? doInclude({
+        pageContent = doInclude({
             parent: pageContent,
             child: content,
             needle: gelo.line
-        }) : pageContent
+        })
     }
     if (fileName(page)[0] != opts.partial) {
-        moveToDest(page, pageContent)
+        moveToDest(page, pretty(pageContent))
         if (reporting)
             report(process.hrtime(hrstart))
     }
