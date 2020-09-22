@@ -31,6 +31,7 @@
     "chokidar": "^3.4.2",
     "commander": "^6.1.0",
     "del": "^5.1.0",
+    "ejs": "^3.1.5",
     "esbuild": "^0.7.1",
     "fast-find-in-files": "^0.1.1",
     "imagemin": "^7.0.1",

@@ -2,7 +2,8 @@
 
 ![Node.js Package](https://github.com/markgarrigan/gelo/workflows/Node.js%20Package/badge.svg)
 
-### ** GELO IS IN ACTIVE DEVELOPMENT. FEATURES MAY COME AND GO IN EVERY RELEASE **
+### ** GELO IS IN ACTIVE DEVELOPMENT.
+### ** FEATURES MAY COME AND GO IN EVERY RELEASE
 
 Are you in to static web pages? Do you wish you knew [The Simplest Way to Handle HTML Includes][1]?
 
@@ -199,17 +200,21 @@ gelo has the underpinnings to become a full staticish site builder including jav
 
 #### Other things gelo can do right now
 
-- Compile css from scss using [sass][4]
+- Compile css from scss using [sass][4].
 - Compress jpegs and pngs using [imagemin][2].
   - Images go into `src/static/images`
 - Move random public files like PDFS.
   - Files go into `src/static/files`
-- Bundle Javascript files using [esbuild][3]
+- Bundle Javascript files using [esbuild][3].
   - Each javascript file in `src/static/js` is treated as an entry file and will be bundled separately
+- Compile templates using [ejs][5].
+  - Configure templates using a gelomold.json file
+  - More details and examples coming soon.
 
 ### gelo Source Directory Structure
 
 ```
++-- gelomold.json
 +-- src
 |   +-- _special.html
 |   +-- index.html
@@ -241,3 +246,4 @@ gelo has the underpinnings to become a full staticish site builder including jav
 [2]: https://www.npmjs.com/package/imagemin
 [3]: https://github.com/evanw/esbuild
 [4]: https://www.npmjs.com/package/sass
+[5]: https://ejs.co/

@@ -11,6 +11,7 @@ import chokidar from 'chokidar'
 import esbuild from 'esbuild'
 import del from 'del'
 import pretty from 'pretty'
+import ejs from 'ejs'
 
 const { buildSync } = esbuild
 const { fastFindInFiles } = ffif
@@ -21,6 +22,7 @@ let hrstart
 const opts = new function () {
     this.sep = '/'
     this.partial = '_'
+    this.ejs = '<%'
     this.event = 'change'
     this.target = 'es5'
     this.ext = {
@@ -117,16 +119,23 @@ const geloDetails = (geloInclude, relativeDir) => {
         params,
         absolute,
         path: rootDir(path),
-        content: fs.existsSync(path) ? fs.readFileSync(`${path}`, 'utf8') : ''
+        content: fs.existsSync(path) ? fs.readFileSync(path, 'utf8') : ''
     }
 }
 
 const moveToDest = (path, content) => {
-    writeFileSyncRecursive(
-        path.replace(opts.paths.root, opts.paths.dest),
-        content,
-        'utf8'
-    )
+    const page = {
+        path,
+        content
+    }
+    const collection = !content.includes(opts.ejs) ? [page] : processEJS(page)
+    collection.forEach(page => {
+        writeFileSyncRecursive(
+            page.path.replace(opts.paths.root, opts.paths.dest),
+            page.content,
+            'utf8'
+        )
+    });
 }
 
 const updateParams = (params, content) => {
@@ -197,6 +206,24 @@ const updateAllPages = (geloPath, reporting = true) => {
         })
     if (reporting)
         report(process.hrtime(hrstart))
+}
+
+const processEJS = ({ path, content }, reporting = true) => {
+    const rawconfig = fs.readFileSync('gelomold.json')
+    const gelomold = JSON.parse(rawconfig)
+    const inMold = gelomold[relativeDir(path)] || {}
+    const rawdata = fs.readFileSync(`${opts.paths.root}${opts.sep}${inMold.data}`)
+    const data = JSON.parse(rawdata)
+    if (inMold.collection) {
+        return data.map(item => ({
+            path: path.replace(fileName(path), `${item.slug}.html`),
+            content: ejs.render(content, item)
+        }))
+    }
+    return [{
+        path,
+        content: ejs.render(content, data)
+    }]
 }
 
 const compileCSS = (reporting = true) => {
