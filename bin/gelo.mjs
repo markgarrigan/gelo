@@ -24,7 +24,7 @@ const opts = new function () {
     this.partial = '_'
     this.ejs = '<%'
     this.event = 'change'
-    this.target = 'es5'
+    this.target = 'es6'
     this.ext = {
         html: '.html',
         js: '.js',
