@@ -194,7 +194,62 @@ Our new `index.html` now has the title we passed in.
 </html>
 ```
 
-## Future
+## EJS Templating
+
+Create a template file using html and [ejs][5]. No, gelo does not support your new fancy templating engine.
+
+Define some metadata at the top of the file using the `<!--gelomold-->` comment.
+
+### Gelomold properties
+- **data**: \<string\> (required) - Relative or absolute path to a javascript file that returns the data to be used in the template. If **data** is a collection of objects, each object must have a **slug** attribute. The **slug** attribute will be used as the file name.
+- **collection**: \<boolean\> (optional) - Tells gelo that data will be a collection of objects. If **collection** is `true` the **data** property must return an array.
+
+##### product.html
+```
+<!--gelomold
+  {
+    "collection": true,
+    "data": "products.js"
+  }
+-->
+<!DOCTYPE html>
+<html>
+  <!--gelo shared/_head.html -->
+  <body>
+    <h1><%= name %></h1>
+    <h2><%= price %></h2>
+    <% if (slug == 'cool-product') { %>
+      <!--gelo _cool_product.html-->
+    <% } %>
+    <!--gelo shared/_footer.html-->
+  </body>
+</html>
+```
+
+##### products.js
+```
+const getAsyncData = () => {
+  setTimeout(function () {
+    process.send([{
+      "slug": "test",
+      "meta_title": "test",
+      "meta_description": "test description",
+      "name": "test",
+      "price": 12
+    }, {
+      "slug": "cool-product",
+      "meta_title": "Cool Product",
+      "meta_description": "Cool Product description",
+      "name": "Cool Product",
+      "price": 20
+    }])
+  }, 2000)
+}
+
+getAsyncData()
+```
+
+## The Future
 
 gelo has the underpinnings to become a full staticish site builder including javascript components and css. gelo may expand into that, or just become part of a larger project that does all that.
 
@@ -207,14 +262,10 @@ gelo has the underpinnings to become a full staticish site builder including jav
   - Files go into `src/static/files`
 - Bundle Javascript files using [esbuild][3].
   - Each javascript file in `src/static/js` is treated as an entry file and will be bundled separately
-- Compile templates using [ejs][5].
-  - Configure templates using a gelomold.json file
-  - More details and examples coming soon.
 
 ### gelo Source Directory Structure
 
 ```
-+-- gelomold.json
 +-- src
 |   +-- _special.html
 |   +-- index.html
@@ -224,6 +275,10 @@ gelo has the underpinnings to become a full staticish site builder including jav
     +-- contact
     |   +-- _map.html
     |   +-- index.html
+    +-- products
+    |   +-- _cool_product.html
+    |   +-- product.html
+    |   +-- product.js
 |   +-- shared
     |   +-- _head.html
     |   +-- _footer.html
