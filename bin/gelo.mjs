@@ -415,7 +415,7 @@ const build = async (paths) => {
 
 const dev = async () => {
   try {
-    const watcher = chokidar.watch('./src', {
+    const watcher = chokidar.watch(opts.paths.root, {
       ignoreInitial: true,
       persistent: true
     })
