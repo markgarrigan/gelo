@@ -1,24 +1,22 @@
-#!/usr/bin/env node
+// #!/usr/bin / env node
 
 import cmd from 'commander'
 import fs from 'fs'
-import ffif from 'fast-find-in-files'
+import del from 'del'
 import sass from 'sass'
+import ejs from 'ejs'
+import esbuild from 'esbuild'
+import pretty from 'pretty'
+import ffif from 'fast-find-in-files'
 import imagemin from 'imagemin'
 import imageminJpegtran from 'imagemin-jpegtran'
 import imageminPngquant from 'imagemin-pngquant'
 import chokidar from 'chokidar'
-import esbuild from 'esbuild'
-import del from 'del'
-import pretty from 'pretty'
-import ejs from 'ejs'
 import { fork } from 'child_process';
 
-const { buildSync } = esbuild
 const { fastFindInFiles } = ffif
+const { buildSync } = esbuild
 const { program } = cmd
-
-let hrstart
 
 const opts = new function () {
   this.sep = '/'
@@ -42,12 +40,57 @@ const opts = new function () {
   }
 }
 
-const fileName = (path) => {
-  return path.split(opts.sep).pop()
+const writeFileSyncRecursive = (filename, content, charset) => {
+  let filepath = filename.replace(/\\/g, opts.sep)
+  let root = ''
+  if (filepath[0] === opts.sep) {
+    root = opts.sep
+    filepath = filepath.slice(1)
+  }
+  else if (filepath[1] === ':') {
+    root = filepath.slice(0, 3)
+    filepath = filepath.slice(3)
+  }
+  const folders = filepath.split(opts.sep).slice(0, -1)
+  folders.reduce(
+    (acc, folder) => {
+      const folderPath = acc + folder + opts.sep
+      if (!fs.existsSync(folderPath)) {
+        fs.mkdirSync(folderPath)
+      }
+      return folderPath
+    },
+    root
+  )
+  fs.writeFileSync(root + filepath, content, charset)
 }
 
 const rootDir = (path) => {
   return `${opts.paths.root}${path.split(`${opts.sep}${opts.paths.root}`).pop()}`
+}
+
+const fileName = (path) => {
+  return path.split(opts.sep).pop()
+}
+
+const clean = () => {
+  const dir = `${process.cwd()}${opts.sep}${opts.paths.dest}`
+  del.sync([dir])
+}
+
+const moveToDest = async (path, content) => {
+  const file = {
+    path,
+    content
+  }
+  const collection = !content.includes(opts.ejs) ? [file] : await buildEJS(file)
+  collection.forEach(file => {
+    writeFileSyncRecursive(
+      file.path.replace(opts.paths.root, opts.paths.dest),
+      file.content,
+      'utf8'
+    )
+  });
 }
 
 const ll = (start, filter) => {
@@ -80,35 +123,6 @@ const currentDir = (path) => {
   return dir.join(opts.sep)
 }
 
-const relativeDir = (path) => {
-  return path.replace(`${opts.paths.root}${opts.sep}`, '')
-}
-
-const doInclude = ({ parent, child, needle }) => {
-  const re = new RegExp(needle, "g")
-  return parent.replace(re, child)
-}
-
-const doInject = ({ content, inject, value }) => {
-  const re = new RegExp(inject, "g")
-  return content.replace(re, value)
-}
-
-const findAllGeloFiles = (path) => {
-  return fastFindInFiles(path, '<!--gelo')
-}
-
-const lookForGelo = (file) => {
-  let fileContent = fs.readFileSync(file, 'utf8')
-  const re = RegExp('<!--gelo(.*)-->', 'g')
-  return Array.from(fileContent.matchAll(re), m => m[0])
-}
-
-const lookForParams = (content) => {
-  const re = RegExp('\{gelo\.(.*)\}', 'g')
-  return Array.from(content.matchAll(re), m => m[0])
-}
-
 const gelomold = (content) => {
   const re = /<!--gelomold(?<json>{.*})-->/gi
   const matches = content.replace(/\s+/g, '').matchAll(re)
@@ -136,19 +150,29 @@ const geloDetails = (geloInclude, relativeDir) => {
   }
 }
 
-const moveToDest = async (path, content) => {
-  const page = {
-    path,
-    content
-  }
-  const collection = !content.includes(opts.ejs) ? [page] : await processEJS(page)
-  collection.forEach(page => {
-    writeFileSyncRecursive(
-      page.path.replace(opts.paths.root, opts.paths.dest),
-      page.content,
-      'utf8'
-    )
-  });
+const doInclude = ({ parent, child, needle }) => {
+  const re = new RegExp(needle, "g")
+  return parent.replace(re, child)
+}
+
+const doInject = ({ content, inject, value }) => {
+  const re = new RegExp(inject, "g")
+  return content.replace(re, value)
+}
+
+const findAllGeloFiles = (path) => {
+  return fastFindInFiles(path, '<!--gelo ')
+}
+
+const lookForGelo = (file) => {
+  let fileContent = fs.readFileSync(file, 'utf8')
+  const re = RegExp('<!--gelo(.*)-->', 'g')
+  return Array.from(fileContent.matchAll(re), m => m[0])
+}
+
+const lookForParams = (content) => {
+  const re = RegExp('\{gelo\.(.*)\}', 'g')
+  return Array.from(content.matchAll(re), m => m[0])
 }
 
 const updateParams = (params, content) => {
@@ -168,17 +192,37 @@ const updateParams = (params, content) => {
   }
 }
 
-const updateSinglePage = async (page, reporting = true) => {
+const copyFile = (path) => {
+  let folders = path.split(opts.sep).slice(0, -1)
+  folders.splice(0, 1, opts.paths.dest)
+  folders.reduce(
+    (acc, folder) => {
+      const folderPath = acc + opts.sep + folder + opts.sep
+      if (!fs.existsSync(folderPath)) {
+        fs.mkdirSync(folderPath)
+      }
+      return folderPath
+    }
+  )
+  fs.copyFileSync(path, `${folders.join(opts.sep)}${opts.sep}${fileName(path)}`)
+}
+
+const copyFiles = (paths) => {
+  paths.forEach(path => {
+    copyFile(path)
+  })
+}
+
+const updateSinglePage = async (page) => {
   const dir = currentDir(page)
   const includes = lookForGelo(page)
   let pageContent = fs.readFileSync(`${process.cwd()}${opts.sep}${page}`, 'utf8')
   if (!includes.length) {
     if (fileName(page)[0] != opts.partial) {
       await moveToDest(page, pretty(pageContent))
-      if (reporting)
-        report(process.hrtime(hrstart))
+    } else {
+      return pageContent
     }
-    return pageContent
   }
   for (const include of includes) {
     const gelo = geloDetails(include, dir)
@@ -198,14 +242,12 @@ const updateSinglePage = async (page, reporting = true) => {
   }
   if (fileName(page)[0] != opts.partial) {
     await moveToDest(page, pretty(pageContent))
-    if (reporting)
-      report(process.hrtime(hrstart))
+  } else {
+    return pageContent
   }
-  return pageContent
 }
 
-const updateAllPages = async (geloPath, reporting = true) => {
-  console.log('did i run twice??');
+const updateAllPages = async (geloPath) => {
   const possibles = findAllGeloFiles(opts.paths.root).filter(possible => possible.filePath.split(opts.sep).pop()[0] != opts.partial)
   const matches = possibles
     .map(possible => possible.queryHits).flat()
@@ -218,24 +260,22 @@ const updateAllPages = async (geloPath, reporting = true) => {
       const gelo = geloDetails(match.line, currentDir(match.link))
       return geloPath == gelo.path
     })
-    .map(match => updateSinglePage(match.link, false))
+    .map(match => updateSinglePage(match.link))
   await Promise.all(matches)
-  if (reporting)
-    report(process.hrtime(hrstart))
 }
 
-const processEJS = async ({ path, content }, reporting = true) => {
+const buildEJS = async ({ path, content }) => {
   const config = gelomold(content)
   const dir = currentDir(path)
   const absolute = config.data[0] == opts.sep
   const builder = absolute ? `${process.cwd()}${opts.sep}${opts.paths.root}${config.data}` : `${process.cwd()}${opts.sep}${dir}${opts.sep}${config.data}`
   const cp = fork(builder)
-  const data = await new Promise(function (resolve, reject) {
-    cp.on('message', function (m) {
-      resolve(m)
-    });
-  })
   const noMold = content.replace(/<!--gelomold.*\}\n?-->\n?/gis, '')
+  const data = await new Promise((resolve, reject) => {
+    cp.on('message', (data) => {
+      resolve(data);
+    })
+  })
   if (config.collection) {
     return data.map(item => ({
       path: path.replace(fileName(path), `${item.slug}.html`),
@@ -248,7 +288,18 @@ const processEJS = async ({ path, content }, reporting = true) => {
   }]
 }
 
-const compileCSS = async (reporting = true) => {
+const compileJS = () => {
+  const paths = ll(`${process.cwd()}${opts.sep}${opts.paths.root}${opts.sep}${opts.paths.js}`, 'js')
+  buildSync({
+    entryPoints: paths,
+    outdir: `${process.cwd()}${opts.sep}${opts.paths.dest}${opts.sep}${opts.paths.js}`,
+    minify: true,
+    bundle: true,
+    target: program.target
+  })
+}
+
+const compileCSS = async () => {
   const paths = ll(`${process.cwd()}${opts.sep}${opts.paths.root}${opts.sep}${opts.paths.css}`, 'css')
   const cssPaths = paths.filter(path => path.includes(opts.ext.css))
   const scssPaths = paths.filter(path => path.includes(opts.ext.scss))
@@ -262,24 +313,9 @@ const compileCSS = async (reporting = true) => {
     })
     return moveToDest(path.replace(opts.ext.scss, opts.ext.css), css.toString())
   }))
-  if (reporting)
-    report(process.hrtime(hrstart))
 }
 
-const buildJS = (reporting = true) => {
-  const paths = ll(`${process.cwd()}${opts.sep}${opts.paths.root}${opts.sep}${opts.paths.js}`, 'js')
-  buildSync({
-    entryPoints: paths,
-    outdir: `${process.cwd()}${opts.sep}${opts.paths.dest}${opts.sep}${opts.paths.js}`,
-    minify: true,
-    bundle: true,
-    target: program.target
-  })
-  if (reporting)
-    report(process.hrtime(hrstart))
-}
-
-const compressImages = async (path, reporting = true) => {
+const compressImages = async (path) => {
   await imagemin([path], {
     destination: `${opts.paths.dest}${opts.sep}${opts.paths.images}`,
     plugins: [
@@ -289,112 +325,48 @@ const compressImages = async (path, reporting = true) => {
       })
     ]
   })
-  if (reporting)
-    report(process.hrtime(hrstart))
-}
-
-const copyFile = (path, reporting = true) => {
-  let folders = path.split(opts.sep).slice(0, -1)
-  folders.splice(0, 1, opts.paths.dest)
-  folders.reduce(
-    (acc, folder) => {
-      const folderPath = acc + opts.sep + folder + opts.sep
-      if (!fs.existsSync(folderPath)) {
-        fs.mkdirSync(folderPath)
-      }
-      return folderPath
-    }
-  )
-  fs.copyFileSync(path, `${folders.join(opts.sep)}${opts.sep}${fileName(path)}`)
-  if (reporting)
-    report(process.hrtime(hrstart))
-}
-
-const copyFiles = (paths, reporting) => {
-  paths.forEach(path => {
-    copyFile(path, false)
-  })
-  if (reporting)
-    report(process.hrtime(hrstart))
-}
-
-const writeFileSyncRecursive = (filename, content, charset) => {
-  let filepath = filename.replace(/\\/g, opts.sep)
-  let root = ''
-  if (filepath[0] === opts.sep) {
-    root = opts.sep
-    filepath = filepath.slice(1)
-  }
-  else if (filepath[1] === ':') {
-    root = filepath.slice(0, 3)
-    filepath = filepath.slice(3)
-  }
-  const folders = filepath.split(opts.sep).slice(0, -1)
-  folders.reduce(
-    (acc, folder) => {
-      const folderPath = acc + folder + opts.sep
-      if (!fs.existsSync(folderPath)) {
-        fs.mkdirSync(folderPath)
-      }
-      return folderPath
-    },
-    root
-  )
-  fs.writeFileSync(root + filepath, content, charset)
-}
-
-const clear = () => {
-  process.stdout.write('\u001B[2J\u001B[00f')
-}
-
-const clean = () => {
-  const dir = `${process.cwd()}${opts.sep}${opts.paths.dest}`
-  del.sync([dir])
-}
-
-const startTime = () => {
-  clear()
-  return process.hrtime()
-}
-
-const report = (hrend) => {
-  console.info('⭐️Finished: %ds %dms', hrend[0], hrend[1] / 1000000)
 }
 
 const added = async (path) => {
-  hrstart = startTime()
+  const hrstart = startTime()
   if (path.includes(opts.paths.images)) {
     await compressImages(path)
   }
   if (path.includes(opts.paths.files)) {
     copyFile(path)
   }
+  if (path.includes(opts.ext.css) || path.includes(opts.ext.scss)) {
+    await compileCSS()
+  }
+  if (path.includes(opts.ext.js)) {
+    compileJS()
+  }
   report(process.hrtime(hrstart))
 }
 
 const changed = async (path) => {
-  hrstart = startTime()
-  if (path.includes(opts.paths.files)) {
-    copyFile(path)
-  }
+  const hrstart = startTime()
   if (path.includes(opts.ext.html)) {
     if (fileName(path)[0] == opts.partial) {
-      // Update all pages that include this partial
       await updateAllPages(path)
     } else {
-      // Update a single page
       await updateSinglePage(path)
     }
+  }
+  if (path.includes(opts.paths.files)) {
+    copyFile(path)
   }
   if (path.includes(opts.ext.css) || path.includes(opts.ext.scss)) {
     await compileCSS()
   }
   if (path.includes(opts.ext.js)) {
-    buildJS()
+    compileJS()
   }
+  report(process.hrtime(hrstart))
 }
 
 const unlinked = async (path) => {
+  const hrstart = startTime()
   const dile = path.replace(opts.paths.root, opts.paths.dest)
   if (path.includes(opts.ext.html) || path.includes(opts.paths.files) || path.includes(opts.ext.js)) {
     if (fs.existsSync(dile)) {
@@ -406,20 +378,34 @@ const unlinked = async (path) => {
     await compileCSS()
   }
   if (path.includes(opts.ext.js)) {
-    buildJS()
+    compileJS()
   }
+  report(process.hrtime(hrstart))
+}
+
+const clear = () => {
+  process.stdout.write('\u001B[2J\u001B[00f')
+}
+
+const startTime = () => {
+  clear()
+  return process.hrtime()
+}
+
+const report = (hrend) => {
+  console.info('⭐️Finished: %ds %dms', hrend[0], hrend[1] / 1000000)
 }
 
 const build = async (paths) => {
   try {
-    hrstart = startTime()
+    const hrstart = startTime()
     clean()
     const htmlPaths = paths.filter(path => path.includes(opts.ext.html))
-    await Promise.all(htmlPaths.map(path => updateSinglePage(path, false)))
+    await Promise.all(htmlPaths.map(path => updateSinglePage(path)))
     await compileCSS(false)
-    copyFiles(paths.filter(path => path.includes(opts.paths.files)), false)
-    await compressImages(`${opts.paths.root}${opts.sep}${opts.paths.images}${opts.sep}*.{jpg,png}`, false)
-    buildJS(false)
+    copyFiles(paths.filter(path => path.includes(opts.paths.files)))
+    await compressImages(`${opts.paths.root}${opts.sep}${opts.paths.images}${opts.sep}*.{jpg,png}`)
+    compileJS()
     report(process.hrtime(hrstart))
   } catch (error) {
     console.error(error)
@@ -428,35 +414,34 @@ const build = async (paths) => {
 }
 
 const dev = async () => {
-  clear()
-  const watcher = chokidar.watch(opts.paths.root, {
-    ignoreInitial: true,
-    persistent: true
-  })
-  // Something to use when events are received.
-  const log = console.log.bind(console)
-  // Add event listeners.
-  watcher
-    .on('add', path => added(path))
-    .on('change', path => changed(path))
-    .on('unlink', path => unlinked(path))
-    .on('error', error => {
-      log(`Watcher error: ${error}`)
-      process.exit()
+  try {
+    const watcher = chokidar.watch('./src', {
+      ignoreInitial: true,
+      persistent: true
     })
-  log('Initial build...')
-  await build(
-    ll(`${process.cwd()}${opts.sep}${opts.paths.root}`, '.'),
-    opts
-  )
-  log('Gelo is ready...')
+    watcher
+      .on('add', path => added(path))
+      .on('change', path => changed(path))
+      .on('unlink', path => unlinked(path))
+      .on('error', error => {
+        console.log(`Watcher error: ${error}`)
+        process.exit()
+      })
+    console.log('Initial build...')
+    await build(
+      ll(`${process.cwd()}${opts.sep}${opts.paths.root}`, '.'),
+      opts
+    )
+    console.log('Gelo is ready...')
+  } catch (error) {
+    console.error(error)
+    process.exit()
+  }
 }
 
 program
   .command('build')
   .description('build all source files to destination directory')
-  // .option('-s, --source <source>', 'the source directory to build from', opts.paths.root)
-  // .option('-d, --destination <destination>', 'the destination directory of the build', opts.paths.dest)
   .option('--js-target <target>', 'Environment target (e.g. es5, es6, es2017, chrome58, firefox57, safari11, edge16, node10, default esnext)', opts.target)
   .action(() => {
     build(
@@ -467,8 +452,6 @@ program
 program
   .command('dev', { isDefault: true })
   .description('build a source file to destination directory')
-  // .option('-s, --source <source>', 'the source directory of your development files', opts.paths.root)
-  // .option('-d, --destination <destination>', 'the destination directory of the build', opts.paths.dest)
   .option('--js-target <target>', 'Environment target (e.g. es5, es6, es2017, chrome58, firefox57, safari11, edge16, node10, default esnext)', opts.target)
   .action(() => {
     dev()
