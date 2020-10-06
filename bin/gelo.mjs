@@ -277,10 +277,14 @@ const buildEJS = async ({ path, content }) => {
     })
   })
   if (config.collection) {
-    return data.map(item => ({
-      path: path.replace(fileName(path), `${item.slug}.html`),
-      content: ejs.render(noMold, item)
-    }))
+    const folders = config.collection == 'folders'
+    return data.map(item => {
+      const newPath = folders ? `${item.slug}/index.html` : `${item.slug}.html`
+      return {
+        path: path.replace(fileName(path), newPath),
+        content: ejs.render(noMold, item)
+      }
+    })
   }
   return [{
     path,
