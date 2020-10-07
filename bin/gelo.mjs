@@ -287,8 +287,9 @@ const buildEJS = async ({ path, content }) => {
       }
     })
   }
+  const gelo_path = config.gelo_path && data.gelo_path ? data.gelo_path.replace(/\/\s*$/, '') + '/' : false
   return [{
-    path,
+    path: gelo_path ? `${opts.paths.root}${opts.sep}${gelo_path}${fileName(path)}` : path,
     content: ejs.render(noMold, data)
   }]
 }
