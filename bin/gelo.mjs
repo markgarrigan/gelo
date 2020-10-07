@@ -279,7 +279,8 @@ const buildEJS = async ({ path, content }) => {
   if (config.collection) {
     const folders = config.collection == 'folders'
     return data.map(item => {
-      const newPath = folders ? `${item.slug}/index.html` : `${item.slug}.html`
+      const gelo_path = config.gelo_path && item.gelo_path ? item.gelo_path.replace(/\/\s*$/, '') + '/' : ''
+      const newPath = folders ? `${gelo_path}${item.slug}/index.html` : `${gelo_path}${item.slug}.html`
       return {
         path: path.replace(fileName(path), newPath),
         content: ejs.render(noMold, item)
