@@ -402,7 +402,7 @@ const report = (hrend) => {
   console.info('⭐️Finished: %ds %dms', hrend[0], hrend[1] / 1000000)
 }
 
-const build = async (paths) => {
+const build = async (paths, exit = true) => {
   try {
     const hrstart = startTime()
     clean()
@@ -413,10 +413,12 @@ const build = async (paths) => {
     await compressImages(`${opts.paths.root}${opts.sep}${opts.paths.images}${opts.sep}*.{jpg,png}`)
     compileJS()
     report(process.hrtime(hrstart))
-    process.exit()
+    if (exit) {
+      process.exit(1)
+    }
   } catch (error) {
     console.error(error)
-    process.exit()
+    process.exit(1)
   }
 }
 
@@ -432,17 +434,17 @@ const dev = async () => {
       .on('unlink', path => unlinked(path))
       .on('error', error => {
         console.log(`Watcher error: ${error}`)
-        process.exit()
+        process.exit(1)
       })
     console.log('Initial build...')
     await build(
       ll(`${process.cwd()}${opts.sep}${opts.paths.root}`, '.'),
-      opts
+      false
     )
     console.log('Gelo is ready...')
   } catch (error) {
     console.error(error)
-    process.exit()
+    process.exit(1)
   }
 }
 
