@@ -413,6 +413,7 @@ const build = async (paths) => {
     await compressImages(`${opts.paths.root}${opts.sep}${opts.paths.images}${opts.sep}*.{jpg,png}`)
     compileJS()
     report(process.hrtime(hrstart))
+    process.exit()
   } catch (error) {
     console.error(error)
     process.exit()
