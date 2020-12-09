@@ -1,5 +1,3 @@
-// #!/usr/bin / env node
-
 import cmd from 'commander'
 import fs from 'fs'
 import del from 'del'
