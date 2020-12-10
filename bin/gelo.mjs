@@ -414,7 +414,7 @@ const build = async (paths, exit = true) => {
     compileJS()
     report(process.hrtime(hrstart))
     if (exit) {
-      process.exit(1)
+      process.exit()
     }
   } catch (error) {
     console.error(error)
