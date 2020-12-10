@@ -9,7 +9,7 @@ import esbuild from 'esbuild'
 import pretty from 'pretty'
 import imagemin from 'imagemin'
 import imageminJpegtran from 'imagemin-jpegtran'
-import imageminPngquant from 'imagemin-pngquant'
+import imageminPngcrush from 'imagemin-pngcrush'
 import chokidar from 'chokidar'
 import { fork, exec } from 'child_process';
 import util from 'util';
@@ -330,9 +330,7 @@ const compressImages = async (path) => {
     destination: `${opts.paths.dest}${opts.sep}${opts.paths.images}`,
     plugins: [
       imageminJpegtran(),
-      imageminPngquant({
-        quality: [0.6, 0.8]
-      })
+      imageminPngcrush()
     ]
   })
 }
