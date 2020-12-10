@@ -408,7 +408,7 @@ const build = async (paths, exit = true) => {
     clean()
     const htmlPaths = paths.filter(path => path.includes(opts.ext.html))
     await Promise.all(htmlPaths.map(path => updateSinglePage(path)))
-    await compileCSS(false)
+    await compileCSS()
     copyFiles(paths.filter(path => path.includes(opts.paths.files)))
     await compressImages(`${opts.paths.root}${opts.sep}${opts.paths.images}${opts.sep}*.{jpg,png}`)
     compileJS()
