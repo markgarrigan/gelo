@@ -7,14 +7,14 @@ import sass from 'sass'
 import ejs from 'ejs'
 import esbuild from 'esbuild'
 import pretty from 'pretty'
-import ffif from 'fast-find-in-files'
 import imagemin from 'imagemin'
 import imageminJpegtran from 'imagemin-jpegtran'
 import imageminPngquant from 'imagemin-pngquant'
 import chokidar from 'chokidar'
-import { fork } from 'child_process';
+import { fork, exec } from 'child_process';
+import util from 'util';
 
-const { fastFindInFiles } = ffif
+const execAsync = util.promisify(exec);
 const { buildSync } = esbuild
 const { program } = cmd
 
@@ -160,8 +160,18 @@ const doInject = ({ content, inject, value }) => {
   return content.replace(re, value)
 }
 
-const findAllGeloFiles = (path) => {
-  return fastFindInFiles(path, '<!--gelo ')
+const findAllGeloFiles = async (path) => {
+  const regexp = /<!--gelo(.*)-->/;
+  const cmd = "egrep -ro '" + regexp.toString().slice(1, -1) + "' " + path;
+  const { stdout, stderr } = await execAsync(cmd, { maxBuffer: 200000000 });
+  return stdout.split('\n')
+    .filter(n => n)
+    .map(match => match.split(':'))
+    .map(file => ({
+      path: file[0],
+      filename: fileName(file[0]),
+      include: file[1]
+    }));
 }
 
 const lookForGelo = (file) => {
@@ -248,20 +258,14 @@ const updateSinglePage = async (page) => {
 }
 
 const updateAllPages = async (geloPath) => {
-  const possibles = findAllGeloFiles(opts.paths.root).filter(possible => possible.filePath.split(opts.sep).pop()[0] != opts.partial)
-  const matches = possibles
-    .map(possible => possible.queryHits).flat()
-    .map(hit => {
-      hit.link = hit.link.split(':').shift()
-      hit.line = hit.line.trim()
-      return hit
-    })
-    .filter((match) => {
-      const gelo = geloDetails(match.line, currentDir(match.link))
+  const geloPages = await findAllGeloFiles(opts.paths.root)
+  const justParents = geloPages.filter(page => page.filename[0] != opts.partial)
+  await Promise.all(
+    justParents.filter(parent => {
+      const gelo = geloDetails(parent.include, currentDir(parent.path))
       return geloPath == gelo.path
-    })
-    .map(match => updateSinglePage(match.link))
-  await Promise.all(matches)
+    }).map(parent => updateSinglePage(parent.path))
+  )
 }
 
 const buildEJS = async ({ path, content }) => {
