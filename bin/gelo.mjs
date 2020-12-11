@@ -337,8 +337,12 @@ const compressImages = async (path) => {
 
 const added = async (path) => {
   const hrstart = startTime()
-  if (path.includes(opts.paths.images)) {
-    await compressImages(path)
+  if (program.images) {
+    if (path.includes(opts.paths.images)) {
+      await compressImages(path)
+    } else {
+      copyFile(path)
+    }
   }
   if (path.includes(opts.paths.files)) {
     copyFile(path)
@@ -412,7 +416,11 @@ const build = async (paths, exit = true) => {
     await Promise.all(htmlPaths.map(path => updateSinglePage(path)))
     await compileCSS()
     copyFiles(paths.filter(path => path.includes(opts.paths.files)))
-    await compressImages(`${opts.paths.root}${opts.sep}${opts.paths.images}${opts.sep}*.{jpg,png}`)
+    if (program.images) {
+      await compressImages(`${opts.paths.root}${opts.sep}${opts.paths.images}${opts.sep}*.{jpg,png}`)
+    } else {
+      copyFiles(paths.filter(path => path.includes(opts.paths.images)))
+    }
     compileJS()
     report(process.hrtime(hrstart))
     if (exit) {
@@ -454,6 +462,7 @@ program
   .command('build')
   .description('build all source files to destination directory')
   .option('--js-target <target>', 'Environment target (e.g. es5, es6, es2017, chrome58, firefox57, safari11, edge16, node10, default esnext)', opts.target)
+  .option('--no-images', 'Do not compress images')
   .action(() => {
     build(
       ll(`${process.cwd()}${opts.sep}${opts.paths.root}`, '.')
@@ -464,6 +473,7 @@ program
   .command('dev', { isDefault: true })
   .description('build a source file to destination directory')
   .option('--js-target <target>', 'Environment target (e.g. es5, es6, es2017, chrome58, firefox57, safari11, edge16, node10, default esnext)', opts.target)
+  .option('--no-images', 'Do not compress images')
   .action(() => {
     dev()
   })
