@@ -5,17 +5,17 @@ import fs from 'fs'
 import del from 'del'
 import sass from 'sass'
 import ejs from 'ejs'
-import esbuild from 'esbuild'
+import webpack from 'webpack'
 import pretty from 'pretty'
 import imagemin from 'imagemin'
 import imageminJpegtran from 'imagemin-jpegtran'
 import imageminPngcrush from 'imagemin-pngcrush'
 import chokidar from 'chokidar'
-import { fork, exec } from 'child_process';
+import { fork, exec } from 'child_process'
 import util from 'util';
 
-const execAsync = util.promisify(exec);
-const { buildSync } = esbuild
+const execAsync = util.promisify(exec)
+const packAsync = util.promisify(webpack)
 const { program } = cmd
 
 const opts = new function () {
@@ -23,7 +23,7 @@ const opts = new function () {
   this.partial = '_'
   this.ejs = '<%'
   this.event = 'change'
-  this.target = 'es6'
+  this.target = ['web', 'es6']
   this.ext = {
     html: '.html',
     js: '.js',
@@ -298,15 +298,23 @@ const buildEJS = async ({ path, content }) => {
   }]
 }
 
-const compileJS = () => {
+const compileJS = async () => {
   const paths = ll(`${process.cwd()}${opts.sep}${opts.paths.root}${opts.sep}${opts.paths.js}`, 'js')
-  buildSync({
-    entryPoints: paths,
-    outdir: `${process.cwd()}${opts.sep}${opts.paths.dest}${opts.sep}${opts.paths.js}`,
-    minify: true,
-    bundle: true,
-    target: program.target
+  const entries = {}
+  paths.map(path => {
+    const filename = fileName(path).split('.')[0]
+    entries[filename] = `.${opts.sep}${path}`
+    return path
   })
+  const result = await packAsync({
+    entry: entries,
+    output: {
+      path: `${process.cwd()}${opts.sep}${opts.paths.dest}${opts.sep}${opts.paths.js}`,
+      filename: `[name]${opts.ext.js}`
+    },
+    mode: 'production'
+  })
+  return result
 }
 
 const compileCSS = async () => {
@@ -351,7 +359,7 @@ const added = async (path) => {
     await compileCSS()
   }
   if (path.includes(opts.ext.js)) {
-    compileJS()
+    await compileJS()
   }
   report(process.hrtime(hrstart))
 }
@@ -372,7 +380,7 @@ const changed = async (path) => {
     await compileCSS()
   }
   if (path.includes(opts.ext.js)) {
-    compileJS()
+    await compileJS()
   }
   report(process.hrtime(hrstart))
 }
@@ -390,7 +398,7 @@ const unlinked = async (path) => {
     await compileCSS()
   }
   if (path.includes(opts.ext.js)) {
-    compileJS()
+    await compileJS()
   }
   report(process.hrtime(hrstart))
 }
@@ -421,7 +429,7 @@ const build = async (paths, exit = true) => {
     } else {
       copyFiles(paths.filter(path => path.includes(opts.paths.images)))
     }
-    compileJS()
+    await compileJS()
     report(process.hrtime(hrstart))
     if (exit) {
       process.exit()
