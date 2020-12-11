@@ -7,9 +7,6 @@ import sass from 'sass'
 import ejs from 'ejs'
 import webpack from 'webpack'
 import pretty from 'pretty'
-import imagemin from 'imagemin'
-import imageminJpegtran from 'imagemin-jpegtran'
-import imageminPngcrush from 'imagemin-pngcrush'
 import chokidar from 'chokidar'
 import { fork, exec } from 'child_process'
 import util from 'util';
@@ -33,7 +30,6 @@ const opts = new function () {
   this.paths = {
     root: 'src',
     dest: 'dist',
-    images: `static${this.sep}images`,
     files: `static${this.sep}files`,
     css: `static${this.sep}css`,
     js: `static${this.sep}js`
@@ -333,25 +329,8 @@ const compileCSS = async () => {
   }))
 }
 
-const compressImages = async (path) => {
-  await imagemin([path], {
-    destination: `${opts.paths.dest}${opts.sep}${opts.paths.images}`,
-    plugins: [
-      imageminJpegtran(),
-      imageminPngcrush()
-    ]
-  })
-}
-
 const added = async (path) => {
   const hrstart = startTime()
-  if (program.images) {
-    if (path.includes(opts.paths.images)) {
-      await compressImages(path)
-    } else {
-      copyFile(path)
-    }
-  }
   if (path.includes(opts.paths.files)) {
     copyFile(path)
   }
@@ -424,11 +403,6 @@ const build = async (paths, exit = true) => {
     await Promise.all(htmlPaths.map(path => updateSinglePage(path)))
     await compileCSS()
     copyFiles(paths.filter(path => path.includes(opts.paths.files)))
-    if (program.images) {
-      await compressImages(`${opts.paths.root}${opts.sep}${opts.paths.images}${opts.sep}*.{jpg,png}`)
-    } else {
-      copyFiles(paths.filter(path => path.includes(opts.paths.images)))
-    }
     await compileJS()
     report(process.hrtime(hrstart))
     if (exit) {
@@ -469,7 +443,6 @@ const dev = async () => {
 program
   .command('build')
   .description('build all source files to destination directory')
-  .option('--no-images', 'Do not compress images')
   .action(() => {
     build(
       ll(`${process.cwd()}${opts.sep}${opts.paths.root}`, '.')
@@ -479,7 +452,6 @@ program
 program
   .command('dev', { isDefault: true })
   .description('build a source file to destination directory')
-  .option('--no-images', 'Do not compress images')
   .action(() => {
     dev()
   })
