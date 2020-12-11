@@ -32,9 +32,6 @@
     "commander": "^6.2.0",
     "del": "^6.0.0",
     "ejs": "^3.1.5",
-    "imagemin": "^7.0.1",
-    "imagemin-jpegtran": "^7.0.0",
-    "imagemin-pngcrush": "^7.0.0",
     "pretty": "^2.0.0",
     "sass": "^1.30.0",
     "webpack": "^5.10.0"
@@ -43,6 +40,6 @@
     "test": ""
   },
   "devDependencies": {
-    "npm-check-updates": "^10.2.3"
+    "npm-check-updates": "^10.2.5"
   }
 }
