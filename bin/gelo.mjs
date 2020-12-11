@@ -469,7 +469,6 @@ const dev = async () => {
 program
   .command('build')
   .description('build all source files to destination directory')
-  .option('--js-target <target>', 'Environment target (e.g. es5, es6, es2017, chrome58, firefox57, safari11, edge16, node10, default esnext)', opts.target)
   .option('--no-images', 'Do not compress images')
   .action(() => {
     build(
@@ -480,7 +479,6 @@ program
 program
   .command('dev', { isDefault: true })
   .description('build a source file to destination directory')
-  .option('--js-target <target>', 'Environment target (e.g. es5, es6, es2017, chrome58, firefox57, safari11, edge16, node10, default esnext)', opts.target)
   .option('--no-images', 'Do not compress images')
   .action(() => {
     dev()
