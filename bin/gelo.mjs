@@ -159,15 +159,19 @@ const doInject = ({ content, inject, value }) => {
 const findAllGeloFiles = async (path) => {
   const regexp = /<!--gelo(.*)-->/;
   const cmd = "egrep -ro '" + regexp.toString().slice(1, -1) + "' " + path;
-  const { stdout, stderr } = await execAsync(cmd, { maxBuffer: 200000000 });
-  return stdout.split('\n')
-    .filter(n => n)
-    .map(match => match.split(':'))
-    .map(file => ({
-      path: file[0],
-      filename: fileName(file[0]),
-      include: file[1]
-    }));
+  try {
+    const { stdout, stderr } = await execAsync(cmd, { maxBuffer: 200000000 });
+    return stdout.split('\n')
+      .filter(n => n)
+      .map(match => match.split(':'))
+      .map(file => ({
+        path: file[0],
+        filename: fileName(file[0]),
+        include: file[1]
+      }));
+  } catch (error) {
+    return [];
+  }
 }
 
 const lookForGelo = (file) => {
@@ -294,7 +298,7 @@ const buildEJS = async ({ path, content }) => {
       content: ejs.render(noMold, data)
     }]
   }
-  return [{path,content}]
+  return [{ path, content }]
 }
 
 const compileJS = async () => {
