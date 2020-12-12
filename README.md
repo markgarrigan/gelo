@@ -196,7 +196,7 @@ Our new `index.html` now has the title we passed in.
 
 ## EJS Templating
 
-Create a template file using html and [ejs][5]. No, gelo does not support your new fancy templating engine.
+Create a template file using html and [ejs][4]. No, gelo does not support your new fancy templating engine.
 
 Define some metadata at the top of the file using the `<!--gelomold-->` comment.
 
@@ -255,12 +255,10 @@ gelo has the underpinnings to become a full staticish site builder including jav
 
 #### Other things gelo can do right now
 
-- Compile css from scss using [sass][4].
-- Compress jpegs and pngs using [imagemin][2].
-  - Images go into `src/static/images`
+- Compile css from scss using [sass][3].
 - Move random public files like PDFS.
   - Files go into `src/static/files`
-- Bundle Javascript files using [esbuild][3].
+- Bundle Javascript files using [webpack][2].
   - Each javascript file in `src/static/js` is treated as an entry file and will be bundled separately
 
 ### gelo Source Directory Structure
@@ -298,7 +296,6 @@ gelo has the underpinnings to become a full staticish site builder including jav
 ```
 
 [1]: https://css-tricks.com/the-simplest-ways-to-handle-html-includes/
-[2]: https://www.npmjs.com/package/imagemin
-[3]: https://github.com/evanw/esbuild
-[4]: https://www.npmjs.com/package/sass
-[5]: https://ejs.co/
+[2]: https://webpack.js.org/
+[3]: https://www.npmjs.com/package/sass
+[4]: https://ejs.co/
