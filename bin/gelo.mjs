@@ -266,32 +266,35 @@ const updateAllPages = async (geloPath) => {
 
 const buildEJS = async ({ path, content }) => {
   const config = gelomold(content)
-  const dir = currentDir(path)
-  const absolute = config.data[0] == opts.sep
-  const builder = absolute ? `${process.cwd()}${opts.sep}${opts.paths.root}${config.data}` : `${process.cwd()}${opts.sep}${dir}${opts.sep}${config.data}`
-  const cp = fork(builder)
-  const noMold = content.replace(/<!--gelomold.*\}\n?-->\n?/gis, '')
-  const data = await new Promise((resolve, reject) => {
-    cp.on('message', (data) => {
-      resolve(data);
+  if (config) {
+    const dir = currentDir(path)
+    const absolute = config.data[0] == opts.sep
+    const builder = absolute ? `${process.cwd()}${opts.sep}${opts.paths.root}${config.data}` : `${process.cwd()}${opts.sep}${dir}${opts.sep}${config.data}`
+    const cp = fork(builder)
+    const noMold = content.replace(/<!--gelomold.*\}\n?-->\n?/gis, '')
+    const data = await new Promise((resolve, reject) => {
+      cp.on('message', (data) => {
+        resolve(data);
+      })
     })
-  })
-  if (config.collection) {
-    const folders = config.collection == 'folders'
-    return data.map(item => {
-      const gelo_path = config.gelo_path && item.gelo_path ? item.gelo_path.replace(/\/\s*$/, '') + '/' : ''
-      const newPath = folders ? `${gelo_path}${item.slug}/index.html` : `${gelo_path}${item.slug}.html`
-      return {
-        path: path.replace(fileName(path), newPath),
-        content: ejs.render(noMold, item)
-      }
-    })
+    if (config.collection) {
+      const folders = config.collection == 'folders'
+      return data.map(item => {
+        const gelo_path = config.gelo_path && item.gelo_path ? item.gelo_path.replace(/\/\s*$/, '') + '/' : ''
+        const newPath = folders ? `${gelo_path}${item.slug}/index.html` : `${gelo_path}${item.slug}.html`
+        return {
+          path: path.replace(fileName(path), newPath),
+          content: ejs.render(noMold, item)
+        }
+      })
+    }
+    const gelo_path = config.gelo_path && data.gelo_path ? data.gelo_path.replace(/\/\s*$/, '') + '/' : false
+    return [{
+      path: gelo_path ? `${opts.paths.root}${opts.sep}${gelo_path}${fileName(path)}` : path,
+      content: ejs.render(noMold, data)
+    }]
   }
-  const gelo_path = config.gelo_path && data.gelo_path ? data.gelo_path.replace(/\/\s*$/, '') + '/' : false
-  return [{
-    path: gelo_path ? `${opts.paths.root}${opts.sep}${gelo_path}${fileName(path)}` : path,
-    content: ejs.render(noMold, data)
-  }]
+  return [{path,content}]
 }
 
 const compileJS = async () => {
