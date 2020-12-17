@@ -32,7 +32,9 @@ const opts = new function () {
     dest: 'dist',
     files: `static${this.sep}files`,
     css: `static${this.sep}css`,
-    js: `static${this.sep}js`
+    js: `static${this.sep}js`,
+    lambda: `static${this.sep}lambda`,
+    api: `api`
   }
 }
 
@@ -320,6 +322,25 @@ const compileJS = async () => {
   return result
 }
 
+const compileLambda = async () => {
+  const paths = ll(`${process.cwd()}${opts.sep}${opts.paths.root}${opts.sep}${opts.paths.lambda}`, 'js')
+  const entries = {}
+  paths.map(path => {
+    const filename = fileName(path).split('.')[0]
+    entries[filename] = `.${opts.sep}${path}`
+    return path
+  })
+  const result = await packAsync({
+    entry: entries,
+    output: {
+      path: `${process.cwd()}${opts.sep}${program.serverless}`,
+      filename: `[name]${opts.ext.js}`
+    },
+    mode: 'production'
+  })
+  return result
+}
+
 const compileCSS = async () => {
   const paths = ll(`${process.cwd()}${opts.sep}${opts.paths.root}${opts.sep}${opts.paths.css}`, 'css')
   const cssPaths = paths.filter(path => path.includes(opts.ext.css))
@@ -346,6 +367,7 @@ const added = async (path) => {
   }
   if (path.includes(opts.ext.js)) {
     await compileJS()
+    await compileLambda()
   }
   report(process.hrtime(hrstart))
 }
@@ -367,6 +389,7 @@ const changed = async (path) => {
   }
   if (path.includes(opts.ext.js)) {
     await compileJS()
+    await compileLambda()
   }
   report(process.hrtime(hrstart))
 }
@@ -385,6 +408,7 @@ const unlinked = async (path) => {
   }
   if (path.includes(opts.ext.js)) {
     await compileJS()
+    await compileLambda()
   }
   report(process.hrtime(hrstart))
 }
@@ -411,7 +435,9 @@ const build = async (paths, exit = true) => {
     await compileCSS()
     copyFiles(paths.filter(path => path.includes(opts.paths.files)))
     await compileJS()
+    await compileLambda()
     report(process.hrtime(hrstart))
+    console.log('Serverless: ', program.serverless)
     if (exit) {
       process.exit()
     }
@@ -446,6 +472,9 @@ const dev = async () => {
     process.exit(1)
   }
 }
+
+program
+  .option('-s, --serverless <directory>', 'Output directory for serverless lambda functions.', opts.paths.api)
 
 program
   .command('build')
