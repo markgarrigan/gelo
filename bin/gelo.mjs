@@ -34,7 +34,7 @@ const opts = new function () {
     css: `static${this.sep}css`,
     js: `static${this.sep}js`,
     lambda: `static${this.sep}lambda`,
-    api: `api`
+    serverless: `api`
   }
 }
 
@@ -474,7 +474,7 @@ const dev = async () => {
 }
 
 program
-  .option('-s, --serverless <directory>', 'Output directory for serverless lambda functions.', opts.paths.api)
+  .option('-s, --serverless <directory>', 'Output directory for serverless lambda functions.', opts.paths.serverless)
 
 program
   .command('build')
