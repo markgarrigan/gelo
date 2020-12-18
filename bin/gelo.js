@@ -8,7 +8,7 @@ const del = require('del')
 // import del from 'del'
 const sass = require('sass')
 // import sass from 'sass'
-const ejs = require('sass')
+const ejs = require('ejs')
 // import ejs from 'ejs'
 const webpack = require('webpack')
 // import webpack from 'webpack'
