@@ -1,36 +1,24 @@
 #!/usr/bin/env node
 
 const { program } = require('commander');
-// import cmd from 'commander'
 const fs = require('fs')
-// import fs from 'fs'
 const del = require('del')
-// import del from 'del'
 const sass = require('sass')
-// import sass from 'sass'
 const ejs = require('ejs')
-// import ejs from 'ejs'
 const webpack = require('webpack')
-// import webpack from 'webpack'
 const pretty = require('pretty')
-// import pretty from 'pretty'
 const chokidar = require('chokidar')
-// import chokidar from 'chokidar'
 const { fork, exec } = require('child_process')
-// import { fork, exec } from 'child_process'
 const util = require('util')
-// import util from 'util';
 
 const execAsync = util.promisify(exec)
 const packAsync = util.promisify(webpack)
-// const { program } = cmd
 
 const opts = new function () {
   this.sep = '/'
   this.partial = '_'
   this.ejs = '<%'
   this.event = 'change'
-  this.target = ['web', 'es6']
   this.ext = {
     html: '.html',
     js: '.js',
@@ -43,8 +31,6 @@ const opts = new function () {
     files: `static${this.sep}files`,
     css: `static${this.sep}css`,
     js: `static${this.sep}js`,
-    lambda: `static${this.sep}lambda`,
-    serverless: `api`
   }
 }
 
@@ -332,26 +318,6 @@ const compileJS = async () => {
   return result
 }
 
-const compileLambda = async () => {
-  const paths = ll(`${process.cwd()}${opts.sep}${opts.paths.root}${opts.sep}${opts.paths.lambda}`, 'js')
-  const entries = {}
-  paths.map(path => {
-    const filename = fileName(path).split('.')[0]
-    entries[filename] = `.${opts.sep}${path}`
-    return path
-  })
-  const result = await packAsync({
-    entry: entries,
-    output: {
-      path: `${process.cwd()}${opts.sep}${program.serverless}`,
-      filename: `[name]${opts.ext.js}`
-    },
-    target: 'node',
-    mode: 'production'
-  })
-  return result
-}
-
 const compileCSS = async () => {
   const paths = ll(`${process.cwd()}${opts.sep}${opts.paths.root}${opts.sep}${opts.paths.css}`, 'css')
   const cssPaths = paths.filter(path => path.includes(opts.ext.css))
@@ -378,7 +344,6 @@ const added = async (path) => {
   }
   if (path.includes(opts.ext.js)) {
     await compileJS()
-    await compileLambda()
   }
   report(process.hrtime(hrstart))
 }
@@ -400,7 +365,6 @@ const changed = async (path) => {
   }
   if (path.includes(opts.ext.js)) {
     await compileJS()
-    await compileLambda()
   }
   report(process.hrtime(hrstart))
 }
@@ -419,7 +383,6 @@ const unlinked = async (path) => {
   }
   if (path.includes(opts.ext.js)) {
     await compileJS()
-    await compileLambda()
   }
   report(process.hrtime(hrstart))
 }
@@ -446,7 +409,6 @@ const build = async (paths, exit = true) => {
     await compileCSS()
     copyFiles(paths.filter(path => path.includes(opts.paths.files)))
     await compileJS()
-    await compileLambda()
     report(process.hrtime(hrstart))
     if (exit) {
       process.exit()
@@ -482,9 +444,6 @@ const dev = async () => {
     process.exit(1)
   }
 }
-
-program
-  .option('-s, --serverless <directory>', 'Output directory for serverless lambda functions.', opts.paths.serverless)
 
 program
   .command('build')
