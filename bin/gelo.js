@@ -1,19 +1,29 @@
 #!/usr/bin/env node
 
-import cmd from 'commander'
-import fs from 'fs'
-import del from 'del'
-import sass from 'sass'
-import ejs from 'ejs'
-import webpack from 'webpack'
-import pretty from 'pretty'
-import chokidar from 'chokidar'
-import { fork, exec } from 'child_process'
-import util from 'util';
+const { program } = require('commander');
+// import cmd from 'commander'
+const fs = require('fs')
+// import fs from 'fs'
+const del = require('del')
+// import del from 'del'
+const sass = require('sass')
+// import sass from 'sass'
+const ejs = require('sass')
+// import ejs from 'ejs'
+const webpack = require('webpack')
+// import webpack from 'webpack'
+const pretty = require('pretty')
+// import pretty from 'pretty'
+const chokidar = require('chokidar')
+// import chokidar from 'chokidar'
+const { fork, exec } = require('child_process')
+// import { fork, exec } from 'child_process'
+const util = require('util')
+// import util from 'util';
 
 const execAsync = util.promisify(exec)
 const packAsync = util.promisify(webpack)
-const { program } = cmd
+// const { program } = cmd
 
 const opts = new function () {
   this.sep = '/'
@@ -336,6 +346,7 @@ const compileLambda = async () => {
       path: `${process.cwd()}${opts.sep}${program.serverless}`,
       filename: `[name]${opts.ext.js}`
     },
+    target: 'node',
     mode: 'production'
   })
   return result
@@ -437,7 +448,6 @@ const build = async (paths, exit = true) => {
     await compileJS()
     await compileLambda()
     report(process.hrtime(hrstart))
-    console.log('Serverless: ', program.serverless)
     if (exit) {
       process.exit()
     }
