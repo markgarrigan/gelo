@@ -8,7 +8,6 @@ const ejs = require('ejs')
 const webpack = require('webpack')
 const pretty = require('pretty')
 const chokidar = require('chokidar')
-const escapeHtml = require('escape-html')
 const { fork, exec } = require('child_process')
 const util = require('util')
 
@@ -156,7 +155,7 @@ const doInclude = ({ parent, child, needle }) => {
 
 const doInject = ({ content, inject, value }) => {
   const re = new RegExp(escapeRegex(inject), "g")
-  return content.replace(re, escapeHtml(value))
+  return content.replace(re, value)
 }
 
 const findAllGeloFiles = async (path) => {
