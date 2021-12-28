@@ -151,7 +151,7 @@ const geloDetails = (geloInclude, relativeDir) => {
 
 const doInclude = ({ parent, child, needle }) => {
   const re = new RegExp(escapeRegex(needle), "g")
-  return parent.replace(re, escapeHtml(child))
+  return parent.replace(re, child)
 }
 
 const doInject = ({ content, inject, value }) => {
