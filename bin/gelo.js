@@ -174,12 +174,12 @@ const findAllGeloFiles = async (path) => {
 
 const lookForGelo = (file) => {
   let fileContent = fs.readFileSync(file, 'utf8')
-  const re = RegExp('<!--gelo(.*)-->', 'g')
+  const re = RegExp('<!--gelo(.*?)-->', 'g')
   return Array.from(fileContent.matchAll(re), m => m[0])
 }
 
 const lookForParams = (content) => {
-  const re = RegExp('\{gelo\.(.*)\}', 'g')
+  const re = RegExp('\{gelo\.(.*?)\}', 'g')
   return Array.from(content.matchAll(re), m => m[0])
 }
 
