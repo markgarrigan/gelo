@@ -8,6 +8,7 @@ const ejs = require('ejs')
 const webpack = require('webpack')
 const pretty = require('pretty')
 const chokidar = require('chokidar')
+const escapeHtml = require('escape-html')
 const { fork, exec } = require('child_process')
 const util = require('util')
 
@@ -32,6 +33,10 @@ const opts = new function () {
     css: `static${this.sep}css`,
     js: `static${this.sep}js`,
   }
+}
+
+const escapeRegex = (string) => {
+  return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
 
 const writeFileSyncRecursive = (filename, content, charset) => {
@@ -145,13 +150,13 @@ const geloDetails = (geloInclude, relativeDir) => {
 }
 
 const doInclude = ({ parent, child, needle }) => {
-  const re = new RegExp(needle, "g")
-  return parent.replace(re, child)
+  const re = new RegExp(escapeRegex(needle), "g")
+  return parent.replace(re, escapeHtml(child))
 }
 
 const doInject = ({ content, inject, value }) => {
-  const re = new RegExp(inject, "g")
-  return content.replace(re, value)
+  const re = new RegExp(escapeRegex(inject), "g")
+  return content.replace(re, escapeHtml(value))
 }
 
 const findAllGeloFiles = async (path) => {
@@ -185,7 +190,7 @@ const lookForParams = (content) => {
 
 const updateParams = (params, content) => {
   try {
-    const data = JSON.parse(`${params}`)
+    const data = JSON.parse(params)
     const injects = lookForParams(content)
     if (injects.length) {
       [...new Set(injects)].forEach(inject => {
